@@ -1,0 +1,19 @@
+// 盤上大戦 — rules.js
+function kingPresent(board,owner,type){return board.some(p=>p&&p.owner===owner&&p.type===type)}
+
+function canPromote(p,owner){return p.type[0]==='s'?kingPresent(game.board,owner,'sk'):kingPresent(game.board,owner,'ck')}
+
+function movesFor(i,b=game.board,ep=game.enPassant){const p=b[i];if(!p)return [];let result=[];const [r,c]=rc(i),fw=p.owner===0?-1:1,add=(rr,cc,extra={})=>{if(!inb(rr,cc))return;const j=idx(rr,cc),dest=b[j];if(!dest||enemy(p,dest))result.push({from:i,to:j,capture:dest?j:null,...extra})};const slide=dirs=>{for(const [dr,dc] of dirs){let rr=r+dr,cc=c+dc;while(inb(rr,cc)){const j=idx(rr,cc),dest=b[j];if(dest){if(enemy(p,dest))result.push({from:i,to:j,capture:j});break}result.push({from:i,to:j});rr+=dr;cc+=dc}}};const dirs8=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]],orth=[[-1,0],[1,0],[0,-1],[0,1]],diag=[[-1,-1],[-1,1],[1,-1],[1,1]];if(p.promoted&&p.type[0]==='s'){if(['sp','sl','sn','ss'].includes(p.type)){for(const [dr,dc] of dirs8)if(shogiGold(dr,dc,fw))add(r+dr,c+dc);return result}if(p.type==='sr'){slide(orth);diag.forEach(([dr,dc])=>add(r+dr,c+dc));return result}if(p.type==='sb'){slide(diag);orth.forEach(([dr,dc])=>add(r+dr,c+dc));return result}}
+switch(p.type){case'ck':case'sk':dirs8.forEach(([dr,dc])=>add(r+dr,c+dc));break;case'cq':slide(dirs8);break;case'cr':case'sr':slide(orth);break;case'cb':case'sb':slide(diag);break;case'cn':for(let dr of [-2,-1,1,2])for(let dc of [-2,-1,1,2])if(Math.abs(dr)+Math.abs(dc)===3)add(r+dr,c+dc);break;case'cp':{if(inb(r+fw,c)&&!b[idx(r+fw,c)]){add(r+fw,c+0);const start=p.owner===0?8:1;if(!p.moved&&!p.fromDrop&&r===start&&inb(r+2*fw,c)&&!b[idx(r+2*fw,c)])add(r+2*fw,c,{double:true})}for(const dc of [-1,1])if(inb(r+fw,c+dc)){const j=idx(r+fw,c+dc);if(b[j]&&enemy(p,b[j]))result.push({from:i,to:j,capture:j});else if(ep&&ep.target===j&&ep.owner!==p.owner&&b[ep.pawnIndex]&&b[ep.pawnIndex].type==='cp')result.push({from:i,to:j,capture:ep.pawnIndex,enpassant:true})}break}
+case'sg':dirs8.forEach(([dr,dc])=>{if(shogiGold(dr,dc,fw))add(r+dr,c+dc)});break;case'ss':dirs8.forEach(([dr,dc])=>{if((dr===fw&&Math.abs(dc)<=1)||(dr===-fw&&Math.abs(dc)===1))add(r+dr,c+dc)});break;case'sn':for(let dc of [-1,1])add(r+2*fw,c+dc);break;case'sl':slide([[fw,0]]);break;case'sp':add(r+fw,c);break;case'dm':{for(const dr of (p.promoted?[-1,1]:[fw]))for(let dc of [-1,1]){const rr=r+dr,cc=c+dc;if(!inb(rr,cc))continue;let dest=b[idx(rr,cc)];if(!dest)result.push({from:i,to:idx(rr,cc)});else if(enemy(p,dest)&&inb(rr+dr,cc+dc)&&!b[idx(rr+dr,cc+dc)])result.push({from:i,to:idx(rr+dr,cc+dc),capture:idx(rr,cc),jump:true})}break}}
+return result}
+
+function legalFrom(i){const p=game.board[i];if(!p||p.owner!==game.turn)return[];let ms=movesFor(i);if(p.type==='ck')ms.push(...castleMoves(i));if(p.type==='dm'){const caps=ms.filter(m=>m.jump);if(caps.length)ms=caps}return ms}
+
+function dropLegal(t,owner){const arr=[];for(let i=0;i<100;i++){if(game.board[i])continue;const [r,c]=rc(i),fw=owner===0?-1:1;if(t==='dm'&&(r+c)%2!==0)continue;if(t==='sp'||t==='sl'||t==='cp'){if(r===(owner===0?0:9))continue}if(t==='sn'&&(owner===0?r<=1:r>=8))continue;if(t==='sp'){let nifu=false;for(let rr=0;rr<10;rr++){const p=game.board[idx(rr,c)];if(p&&p.owner===owner&&p.type==='sp'&&!p.promoted){nifu=true;break}}if(nifu)continue}arr.push({to:i,drop:t})}return arr}
+
+function othelloFlip(to,owner){const [r,c]=rc(to),out=new Set();for(const [dr,dc] of [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]){let rr=r+dr,cc=c+dc,line=[];while(inb(rr,cc)){const j=idx(rr,cc),p=game.board[j];if(!p)break;if(p.owner===owner){if(p.type==='ot'&&line.length)line.forEach(x=>out.add(x));break}line.push(j);rr+=dr;cc+=dc}}return [...out]}
+
+function displayIndex(display){return rotation?99-display:display}
+
+function descPiece(p){return p?META[p.type].name+(p.promoted?'・成':''):''}

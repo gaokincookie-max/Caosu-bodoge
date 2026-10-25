@@ -1,0 +1,18 @@
+/* All boards share a 10 × 10 layout and exactly the same cell dimensions. */
+:root { --board-width: min(calc(100vw - 36px), 500px); }
+.board-shell { width: var(--board-width); max-width:100%; margin-inline:auto; padding:4px; flex:none; }
+.board { width:100%; aspect-ratio:1; display:grid; grid-template-columns:repeat(10,minmax(0,1fr)); grid-template-rows:repeat(10,minmax(0,1fr)); gap:0; border:1px solid #614930; }
+.sq { box-sizing:border-box; width:100%; height:100%; aspect-ratio:1; min-width:0; min-height:0; border:0; outline:1px solid rgba(82,59,36,.34); outline-offset:-1px; overflow:hidden; font-size:clamp(12px,calc(var(--board-width) / 17),28px); }
+.sq.dark { background:#b49771; }
+.sq:not(.dark) { background:#e6d1a7; }
+.sq.formation-inactive { opacity:.60; cursor:default; }
+.sq.formation-inactive::before { content:''; position:absolute; inset:0; background:#26332a24; }
+.sq.formation-active { box-shadow:inset 0 0 0 1px #f0d0878f; }
+.sq .piece { display:grid; place-items:center; max-width:95%; max-height:95%; }
+.sq .piece.check { width:78%; height:78%; font-size:.55em; font-weight:900; border:3px double #f4cf91; background:radial-gradient(circle at 35% 30%, #e68f70, #9d382e); box-shadow:inset 0 0 0 2px #672923,inset 0 0 0 5px #f9deae65,0 2px 3px #0009; color:#fff2c8; border-radius:50%; }
+.sq .piece.check.black { background:radial-gradient(circle at 35% 30%, #7883a0, #253449); border-color:#d8e5f3; box-shadow:inset 0 0 0 2px #1d2638,inset 0 0 0 5px #dde4f080,0 2px 3px #0009; color:#f4e7bd; }
+.sq .piece.othello { width:65%; height:65%; border-radius:50%; border:1px solid #7b7465; background:radial-gradient(circle at 30% 25%,#fff,#d5d1c5); box-shadow:inset -2px -2px 3px #888,0 2px 2px #0008; }
+.sq .piece.othello.black { background:radial-gradient(circle at 30% 25%,#555,#090b0c); border-color:#151515; box-shadow:inset -2px -2px 3px #000b,0 2px 2px #0008; }
+/* A checker is a carved red/navy disc with a diamond (or crown); Othello is a plain monochrome stone. */
+@media(min-width:620px){:root {--board-width:500px;}}
+@media(max-width:355px){:root {--board-width:calc(100vw - 22px);}}
