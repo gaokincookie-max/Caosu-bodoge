@@ -23,7 +23,7 @@ function changeCount(t,n){const before=edit.roster[t]||0,after=before+n;if(after
 
 function clearFormation(){edit.positions=Array(30).fill(null);renderEditor()}
 
-function formationPreset(type){const p=preset(type);edit.roster=p.roster;edit.positions=p.positions;placeType=null;renderEditor();toast('原作配置を読み込みました')}
+function formationPreset(type){const p=preset(type);edit.roster=p.roster;edit.positions=p.positions;placeType=null;renderEditor();toast(type==='checkers'?'10×10盤用の15枚配置を読み込みました':'原作風配置を読み込みました')}
 
 function renderFormation(){
   // The editor uses the very same ten-by-ten square grid as the match.
