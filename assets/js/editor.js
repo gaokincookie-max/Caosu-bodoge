@@ -33,7 +33,8 @@ function renderFormation(){
     const local=(row-7)*10+c;
     const active=row>=7;
     const t=active?edit.positions[local]:null;
-    const p=t?makePiece(t,0):null;
+    // Editor preview must not create live match pieces: game may be null.
+    const p=t?{type:t,owner:0,promoted:null,moved:false}:null;
     html+=`<button type="button" class="sq ${(row+c)%2?'dark ':''}${active?'formation-active':'formation-inactive'}" ${active?`onclick="placeAt(${local})"`:'disabled'} aria-label="${active?(t?META[t].name:'空きマス'):'配置不可'}">${p?pieceHTML(p):''}</button>`;
   }
   html+='</div>';
@@ -42,4 +43,10 @@ function renderFormation(){
   $('formationTray').innerHTML='<button class="'+(!placeType?'on':'')+'" onclick="placeType=null;renderFormation()">取り外し</button>'+Object.entries(edit.roster).filter(([t,n])=>n>0&&t!=='ot').map(([t,n])=>{let free=n-edit.positions.filter(x=>x===t).length;return `<button class="${placeType===t?'on':''}" onclick="placeType='${t}';renderFormation()">${META[t].name} 残${free}</button>`}).join('');
 }
 
-function placeAt(i){const t=edit.positions[i];if(t){edit.positions[i]=null;renderEditor();return}if(!placeType)return;if(placeType==='dm'&&(Math.floor(i/10)+i%10)%2){toast('チェッカーは暗色マスのみ');return}if(edit.positions.filter(x=>x===placeType).length>=(edit.roster[placeType]||0)){toast('未配置の駒がありません');return}edit.positions[i]=placeType;renderEditor()}
+function placeAt(i){const t=edit.positions[i];
+  // Tap occupied cell to remove it; if another piece is selected, replace it.
+  if(t){if(!placeType||placeType===t){edit.positions[i]=null;renderEditor();return}
+    const available=(edit.roster[placeType]||0)-edit.positions.filter(x=>x===placeType).length;
+    if(available<=0){toast('未配置の駒がありません');return}
+  }
+  if(!placeType)return;if(placeType==='dm'&&(Math.floor(i/10)+i%10)%2){toast('チェッカーは暗色マスのみ');return}if(edit.positions.filter(x=>x===placeType).length>=(edit.roster[placeType]||0)){toast('未配置の駒がありません');return}edit.positions[i]=placeType;renderEditor()}
