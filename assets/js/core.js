@@ -10,7 +10,9 @@ function esc(s){return String(s).replace(/[&<>"']/g,a=>({'&':'&amp;','<':'&lt;',
 
 function setMode(m){chooseBattleMode(m)}
 
-function startGame(){if(setupStage!==2||!['cpu','local'].includes(mode))return;const d1=data.decks[selfIdx],d2=data.decks[enemyIdx];if(!stat(d1).valid||!stat(d2).valid){toast('デッキの編成条件を確認してください');return}game={board:Array(100).fill(null),hands:[{},{}],turn:0,ply:0,nextId:0,history:[],last:null,enPassant:null,finished:false,mode};for(let owner=0;owner<2;owner++){const d=owner?d2:d1;for(let r=0;r<3;r++)for(let c=0;c<10;c++){const t=d.positions[idx(r,c)];if(!t)continue;const target=owner?idx(r,c):idx(9-r,9-c);game.board[target]=makePiece(t,owner)}game.hands[owner].ot=d.roster.ot||0}selection=null;rotation=false;view('battle');renderBattle();if(mode==='cpu'&&game.turn===1)scheduleCpu()}
+function startGame(){if(setupStage!==2||!['cpu','local'].includes(mode))return;const d1=data.decks[selfIdx],d2=data.decks[enemyIdx];if(!stat(d1).valid||!stat(d2).valid){toast('デッキの編成条件を確認してください');return}game={board:Array(100).fill(null),hands:[{},{}],turn:0,ply:0,nextId:0,history:[],last:null,enPassant:null,finished:false,mode};for(let owner=0;owner<2;owner++){const d=owner?d2:d1;for(let r=0;r<3;r++)for(let c=0;c<10;c++){const t=d.positions[idx(r,c)];if(!t)continue;// Saved formations use top-to-bottom rows 0..2, shown at rows 7..9 in the editor.
+      // Preserve exactly the editor coordinates for player 1; do not rotate by 180 degrees.
+      const target=owner?idx(r,c):idx(7+r,c);game.board[target]=makePiece(t,owner)}game.hands[owner].ot=d.roster.ot||0}selection=null;rotation=false;view('battle');renderBattle();if(mode==='cpu'&&game.turn===1)scheduleCpu()}
 
 function shogiGold(dr,dc,forward){return (dr===forward&&Math.abs(dc)<=1)||(dr===0&&Math.abs(dc)===1)||(dr===-forward&&dc===0)}
 
